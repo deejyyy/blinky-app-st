@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(blinky-app-stm32g0b1re C ASM)
+project(blinky-app-st C ASM)
 
 set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_PROCESSOR arm)
@@ -10,8 +10,8 @@ set(CMAKE_ASM_COMPILER arm-none-eabi-gcc)
 
 set(CMAKE_BUILD_DIR ${CMAKE_SOURCE_DIR}/build)
 
-set(CPU_FLAGS "-mcpu=cortex-m0plus -mthumb")
-set(LINKER_SCRIPT "${CMAKE_SOURCE_DIR}/STM32G0B1RETx_FLASH.ld")
+set(CPU_FLAGS "-mcpu=cortex-m0plus -mthumb -fno-exceptions -fno-unwind-tables")
+set(LINKER_SCRIPT "${CMAKE_SOURCE_DIR}/stm32g0b1retx_flash.ld -nostdlib -nostartfiles")
 
 set(CMAKE_C_FLAGS "${CPU_FLAGS} -Wall -Wextra -Os")
 set(CMAKE_EXE_LINKER_FLAGS "${CPU_FLAGS} -T${LINKER_SCRIPT}")
@@ -26,4 +26,8 @@ target_include_directories(blinky PRIVATE
     ${CMAKE_SOURCE_DIR}/inc
 )
 
-# Optionally, list STM32 HAL sources here if using the full Cube HAL
+# Post-build: convert ELF to BIN
+add_custom_command(TARGET blinky POST_BUILD
+    COMMAND arm-none-eabi-objcopy -O binary $<TARGET_FILE:blinky> ${CMAKE_BINARY_DIR}/blinky.bin
+    COMMENT "Generating blinky.bin from blinky.elf"
+)
